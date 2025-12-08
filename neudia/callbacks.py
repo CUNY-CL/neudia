@@ -1,6 +1,6 @@
 """Custom callbacks."""
 
-import itertools
+from typing import TextIO
 
 import lightning
 from lightning.pytorch import callbacks, trainer
@@ -55,8 +55,9 @@ class PredictionWriter(callbacks.BasePredictionWriter):
     ) -> None:
         mapper = data.Mapper(trainer.datamodule.index)
         for prediction in predictions:
+            # FIXME surely a lot to do here.
             print(
-                "".join(mapper.decode_target(prediction)),
+                "".join(mapper.decode_tags(prediction)),
                 file=self.sink,
             )
         self.sink.flush()

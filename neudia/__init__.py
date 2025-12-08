@@ -1,4 +1,4 @@
-"""CharDay: character tagging.
+"""NeuDia: neural diacritization.
 
 This module just silences some uninformative warnings.
 """

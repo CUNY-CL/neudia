@@ -4,9 +4,10 @@ The TsvParser yields data from TSV files using 1-based indexing.
 """
 
 import csv
+import dataclasses
 from typing import Iterator
 
-from . import defaults
+from .. import defaults
 
 
 class Error(Exception):
@@ -21,10 +22,10 @@ class TsvParser:
     """Streams data from a TSV file.
 
     Args:
-        source_col (int, optional): 1-indexed column in TSV containing
-            source (defective) strings.
-        target_col (int, optional): 1-indexed column in TSV containing
-            target (plene) strings.
+        source_col: 1-indexed column index in TSV containing source
+            (defective) strings.
+        target_col: 1-indexed column index in TSV containing target
+            (plene) strings.
     """
 
     source_col: int = defaults.SOURCE_COL
@@ -56,11 +57,11 @@ class TsvParser:
         """Returns a string from a row by index.
 
         Args:
-           row (list[str]): the split row.
-           col (int): the column index.
+           row: the split row.
+           col: the column index.
 
         Returns:
-           str: symbol from that string.
+           The string from that cell.
         """
         return row[col - 1]  # -1 because we're using one-based indexing.
 

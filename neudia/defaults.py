@@ -1,12 +1,11 @@
 """Default values for flags and modules."""
 
-import numpy
-
-from torch import optim
-
-from . import schedulers
+from yoyodyne import optimizers, schedulers
 
 # All elements should be styled as CONSTANTS.
+
+# Scalar constants.
+NEG_EPSILON = -1e7
 
 # Default text encoding.
 ENCODING = "utf-8"
@@ -26,5 +25,5 @@ BETA1 = 0.9
 BETA2 = 0.999
 DROPOUT = 0.2
 LABEL_SMOOTHING = 0.0
-OPTIMIZER = optim.Adam
+OPTIMIZER = optimizers.Adam
 SCHEDULER = schedulers.Dummy
