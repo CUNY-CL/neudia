@@ -4,11 +4,13 @@ Neudia is a neural network-based diacritization system.
 
 ## Philosophy
 
-Neudia is closely inspired by the Nakdimon diacritization system for Hebrew (Gershuni & Pinter 2022), but is intended to be much more general.
+Neudia is closely inspired by the Nakdimon diacritization system for Hebrew
+(Gershuni & Pinter 2022), but is intended to be much more general.
 
 ## Design
 
-The Neudia model consists of a randomly initialized bidirectional LSTM which feeds into a tagger layer.
+The Neudia model consists of a randomly initialized bidirectional LSTM which
+feeds into a tagger layer.
 
 Lightning is used to generate the [training, validation, inference, and
 evaluation
@@ -23,7 +25,8 @@ also be specified using POSIX-style command-line flags.
 
 ## Authors
 
-Neudia was created by [Kyle Gorman](https://wellformedness.com) and [opther contributors](https://github.com/CUNY-CL/neudia/graphs/contributors) likeyoyodyne yourself.
+Neudia was created by [Kyle Gorman](https://wellformedness.com) and [opther
+contributors](https://github.com/CUNY-CL/neudia/graphs/contributors) like you.
 
 ## Installation
 
@@ -43,13 +46,21 @@ the source string and the second the target string.
 
     source   target
 
+One can specify different 1-indexed column indices using arguments to `data:`:
+
+    ...
+    data:
+      source_col: 2
+      target_col: 1
+      ...
+
 ## Usage
 
-The `yoyodyne` command-line tool uses a subcommand interface, with four
-different modes. To see a full set of options available for each subcommand, use
-the `--print_config` flag. For example:
+The `neudia` command-line tool uses a subcommand interface, with four different
+modes. To see a full set of options available for each subcommand, use the
+`--print_config` flag. For example:
 
-    yoyodyne fit --print_config
+    neudia fit --print_config
 
 will show all configuration options (and their default values) for the `fit`
 subcommand.
@@ -58,23 +69,124 @@ For more detailed examples, see the [`configs`](configs) directory.
 
 ### Training (`fit`)
 
-FIXME
+In `fit` mode, one trains a model, either from scratch or optionally, resuming
+from a pre-existing checkpoint. Naturally, most configuration options need to be
+set at training time.
+
+This mode is invoked using the `fit` subcommand, like so.
+
+    neudia fit --config path/to/config.yaml
+
+Alternatively, one can resume training from a pre-existing checkpoint so long as
+it matches the specification of the configuration file.
+
+    neudia fit --config path/to/config.yaml --ckpt_path path/to/checkpoint.ckpt
+
+#### Seeding
+
+Setting the `seed_everything:` argument to s ome fixed value ensures a
+reproducible experiment (modulo hardware non-determinism).
+
+#### Model architecture
+
+A specification for a model determines specific properties of:
+
+-   `dropout` probability
+-   the dimensionality of the embeddings (`embedding_size`)
+-   the dimensionality of the encoder `hidden_size`
+-   `label_smoothing` probability
+-   the number of encoder `layers`
+
+#### Optimization
+
+Neudia requires an optimizer and a learning rate scheduler. The system is
+borrowed from Yoyodyne; [see here for more
+information](https://github.com/CUNY-CL/yoyodyne/blob/master/README.md#optimization).
+
+#### Checkpointing
+
+A checkpoint config must be specified or no checkpoints will be generated; [see
+here for more
+information](https://github.com/CUNY-CL/yoyodyne/blob/master/README.md#checkpointing).
+
+#### Callbacks
+
+[See here for more
+information](https://github.com/CUNY-CL/yoyodyne/blob/master/README.md#callbacks).
+
+#### Logging
+
+[See here for more
+information](https://github.com/CUNY-CL/yoyodyne/blob/master/README.md#logging).
+
+#### Other options
+
+Batch size is specified using `data: batch_size: ...`.
+
+By default, training uses 32-bit precision. However, the `trainer: precision:`
+flag allows the user to perform training with half precision (`16`), or with
+mixed-precision formats like `bf16-mixed` if supported by the accelerator. This
+might reduce the size of the model and batches in memory, allowing one to use
+larger batches, or it may simply provide small speed-ups.
+
+There are a number of ways to specify how long a model should train for. For
+example, the following YAML snippet specifies that training should run for 100
+epochs or 6 wall-clock hours, whichever comes first:
+
+    ...
+    trainer:
+      max_epochs: 100
+      max_time: 00:06:00:00
+      ...
 
 ### Validation (`validate`)
 
-FIXME
+In `validation` mode, one runs the validation step over labeled validation data
+(specified as `data: val: path/to/validation.tsv`) using a previously trained
+checkpoint (`--ckpt_path path/to/checkpoint.ckpt` from the command line),
+recording loss and other statistics for the validation set. In practice this is
+mostly useful for debugging.
+
+This mode is invoked using the `validate` subcommand, like so:
+
+    neudia validate --config path/to/config.yaml --ckpt_path path/to/checkpoint.ckpt
 
 ### Evaluation (`test`)
 
-FIXME
+In `test` mode, one computes accuracy over held-out test data (specified as
+`data: test: path/to/test.tsv`) using a previously trained checkpoint
+(`--ckpt_path path/to/checkpoint.ckpt` from the command line); it differs from
+validation mode in that it uses the `test` file rather than the `val` file.
+
+This mode is invoked using the `test` subcommand, like so:
+
+    neudia test --config path/to/config.yaml --ckpt_path path/to/checkpoint.ckpt
 
 ### Inference (`predict`)
 
-FIXME
+In `predict` mode, a previously trained model checkpoint
+(`--ckpt_path path/to/checkpoint.ckpt` from the command line) is used to label
+an input file. One must also specify the path where the predictions will be
+written:
+
+    ...
+    predict:
+      path: path/to/predictions.txt
+    ...
+
+This mode is invoked using the `predict` subcommand, like so:
+
+    neudia predict --config path/to/config.yaml --ckpt_path path/to/checkpoint.ckpt
 
 ## Examples
 
-FIXME
+The [`examples`](examples) directory contains some relevant examples.
+
+## Related projects
+
+-   Neudia is closely based on
+    [Yoyodyne](https://github.com/CUNY-CL/yoyodyne/tree/master) and reuses much
+    of its core code.
 
 ## License
 
@@ -94,4 +206,6 @@ FIXME
 
 ## References
 
-Gershuni, E. and Pinter, Y. 2022. [Restoring Hebrew diacritics without a dictionary](https://aclanthology.org/2022.findings-naacl.75/). In _Findings of the Association for Computational Linguistics: NAACL 2022_, pages 1010-1018.
+Gershuni, E. and Pinter, Y. 2022. [Restoring Hebrew diacritics without a
+dictionary](https://aclanthology.org/2022.findings-naacl.75/). In *Findings of
+the Association for Computational Linguistics: NAACL 2022*, pages 1010-1018.
