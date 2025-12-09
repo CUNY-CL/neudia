@@ -24,8 +24,8 @@ class Neudia(lightning.LightningModule):
     """
 
     encoder: modules.Encoder
-    classifier: modules.Classifier
-    loss_func: nn.CrossEntropy
+    tagger: modules.Tagger
+    loss_func: nn.CrossEntropyLoss
     optimizer: optim.Optimizer
     scheduler: optim.lr_scheduler.LRScheduler
     # Used for validation in `fit` and testing in `test`.
@@ -41,25 +41,60 @@ class Neudia(lightning.LightningModule):
         *,
         optimizer: cli.OptimizerCallable = defaults.OPTIMIZER,
         scheduler: cli.LRSchedulerCallable = defaults.SCHEDULER,
-        vocab_size: int = 2,  # Dummy value filled in via link.
+        # Dummy values filled in via link.
+        source_vocab_size: int = 2,
+        tag_vocab_size: int = 2,
+        encoder_keep: frozenset[int] = None,
     ):
         super().__init__()
         self.encoder = modules.Encoder(
-            dropout, embedding_size, hidden_size, layers
+            dropout,
+            embedding_size,
+            hidden_size,
+            layers,
+            source_vocab_size,
         )
-        self.classifier = modules.Tagger(hidden_size, vocab_size)
+        self.tagger = modules.Tagger(hidden_size, tag_vocab_size)
         self.loss_func = nn.CrossEntropyLoss(
             ignore_index=special.PAD_IDX, label_smoothing=label_smoothing
         )
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.accuracy = classification.MulticlassAccuracy(
-            vocab_size, average="micro", ignore_index=special.PAD_IDX
+            tag_vocab_size, average="micro", ignore_index=special.PAD_IDX
         )
-        self.save_hyperparamaters()
+        self.register_buffer("encoder_keep", torch.tensor(list(encoder_keep)))
+        self.save_hyperparameters()
+
+    def configure_optimizers(
+        self,
+    ) -> tuple[list[optim.Optimizer], list[optim.lr_scheduler.LRScheduler]]:
+        optimizer = self.optimizer(self.parameters())
+        scheduler = self.scheduler(optimizer)
+        return [optimizer], [scheduler]
 
     def forward(self, batch: data.Batch) -> torch.Tensor:
         encoded = self.encoder(batch.source)
+        # Removes the second dimension of the encoder output when the
+        # corresponding source symbol, the one being encoded, doesn't have any
+        # associated tags. Supposedly this uses a hash set internally so this
+        # should be efficient.
+        encoded = nn.utils.rnn.pad_sequence(
+            [
+                encoded_sequence[
+                    torch.isin(source_sequence, self.encoder_keep)
+                ]
+                for source_sequence, encoded_sequence in zip(
+                    batch.source.tensor, encoded
+                )
+            ],
+            batch_first=True,
+            padding_value=special.PAD_IDX,
+        )
+        # TODO: maybe we should be masking out the logits of tags not
+        # compatible with the source symbol, but that's a lot of book-keeping
+        # and I'm going to hope the model simply self-organizes to avoid this.
+        # kind of error.
         return self.tagger(encoded)
 
     # See the following for how these are called by the different subcommands.
@@ -97,10 +132,29 @@ class Neudia(lightning.LightningModule):
             on_step=False,
             prog_bar=True,
         )
+        self.accuracy.update(logits, batch.tags.tensor)
+
+    def on_validation_epoch_end(self) -> None:
+        self.log(
+            "val_accuracy",
+            self.accuracy.compute(),
+            logger=True,
+            on_epoch=True,
+            prog_bar=True,
+        )
 
     def on_test_epoch_start(self) -> None:
         self.accuracy.reset()
 
     def test_step(self, batch: data.Batch, batch_idx: int) -> None:
         logits = self(batch)
-        self.accuracy.updates(logits, batch.tags.tensor)
+        self.accuracy.update(logits, batch.tags.tensor)
+
+    def on_test_epoch_end(self) -> None:
+        self.log(
+            "test_accuracy",
+            self.accuracy.compute(),
+            logger=True,
+            on_epoch=True,
+            prog_bar=True,
+        )

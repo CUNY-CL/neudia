@@ -53,6 +53,7 @@ class DataModule(lightning.LightningDataModule):
         batch_size: int = defaults.BATCH_SIZE,
     ):
         super().__init__()
+        self.model_dir = model_dir
         self.train = train
         self.val = val
         self.predict = predict
@@ -62,13 +63,14 @@ class DataModule(lightning.LightningDataModule):
         )
         self.batch_size = batch_size
         self.index = (
-            self._make_index(model_dir)
+            self._make_index()
             if self.train
-            else indexes.Index.read(model_dir)
+            else indexes.Index.read(self.model_dir)
         )
+        self.log_vocabularies()
         self.collator = collators.Collator(self.has_target)
 
-    def _make_index(self, model_dir: str) -> indexes.Index:
+    def _make_index(self) -> indexes.Index:
         source_vocabulary = set()
         source2tags = collections.defaultdict(set)
         if self.has_target:
@@ -78,7 +80,7 @@ class DataModule(lightning.LightningDataModule):
                     source2tags[source_char].add(target_char)
         index = indexes.Index(source_vocabulary, source2tags)
         # Writes it to the model directory.
-        index.write(model_dir)
+        index.write(self.model_dir)
         return index
 
     # Logging.
@@ -86,11 +88,14 @@ class DataModule(lightning.LightningDataModule):
     def log_vocabularies(self) -> None:
         """Logs this module's vocabularies."""
         logging.info(
-            "Source vocabulary: %s", self.pprint(self.index.source_vocabulary)
+            "Source vocabulary (%d): %s",
+            len(self.index.source_vocabulary),
+            self.pprint(self.index.source_vocabulary),
         )
-        if self.has_tags:
+        if self.has_target:
             logging.info(
-                "Tag vocabulary: %s",
+                "Tag vocabulary (%d): %s",
+                len(self.index.tag_vocabulary),
                 self.pprint(self.index.tag_vocabulary),
             )
 
@@ -106,6 +111,18 @@ class DataModule(lightning.LightningDataModule):
     @property
     def has_target(self) -> bool:
         return self.parser.has_target
+
+    @property
+    def source_vocab_size(self) -> int:
+        return len(self.index.source_vocabulary)
+
+    @property
+    def tag_vocab_size(self) -> int:
+        return len(self.index.tag_vocabulary)
+
+    @property
+    def encoder_keep(self) -> frozenset[int]:
+        return self.index.encoder_keep
 
     # Required API.
 

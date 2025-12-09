@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Iterable
+from typing import Iterable, Iterator
 
 import torch
 
@@ -37,35 +37,32 @@ class Mapper:
         )
 
     def encode_tags(self, symbols: Iterable[str]) -> torch.Tensor:
-        # Skips over unkown symbols.
         tags = []
         for symbol in symbols:
             idx = self.index.tag_vocabulary(symbol)
+            # Skips over identity tags.
             if idx != special.UNK_IDX:
                 tags.append(idx)
         return torch.tensor(tags)
 
     # Decoding.
 
-    @staticmethod
-    def _decode(
-        indices: torch.Tensor, vocabulary: indexes.Vocabulary
-    ) -> list[str]:
-        """Decodes a tensor.
-
-        Padding symbols are omitted.
-        """
-        symbols = []
+    def decode_source(self, indices: torch.Tensor) -> Iterator[str]:
         for idx in indices:
-            if idx == special.PAD:
-                return symbols
-            symbols.append(vocabulary.get_symbol(idx))
-        return symbols
+            if idx == special.PAD_IDX:
+                return
+            yield self.index.vocabulary.get_symbol(idx)
 
-    def decode_source(self, symbols: Iterable[str]) -> torch.Tensor:
-        return self._decode(symbols, self.index.source_vocabulary)
-
-    # FIXME this should be more clever.
-
-    def decode_tags(self, symbols: Iterable[str]) -> torch.Tensor:
-        return self._decode(symbols, self.index.tag_vocabulary)
+    def decode_tagged(
+        self, source_indices: torch.Tensor, tag_indices: torch.Tensor
+    ) -> Iterator[str]:
+        tag_it = iter(tag_indices)
+        for source in source_indices:
+            source_idx = source.item()
+            if source_idx == special.PAD_IDX:
+                return
+            elif source_idx in self.index.encoder_keep:
+                tag_idx = next(tag_it).item()
+                yield self.index.tag_vocabulary.get_symbol(tag_idx)
+            else:
+                yield self.index.source_vocabulary.get_symbol(source_idx)

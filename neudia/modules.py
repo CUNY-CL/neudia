@@ -1,4 +1,8 @@
-"""Neudia modules."""
+"""Neudia modules.
+
+In the documentation below, N is the batch size, C is the number of tags, and
+L is the maximum length (in tags) of a sentence in the batch.
+"""
 
 import lightning
 import torch
@@ -31,10 +35,12 @@ class Encoder(lightning.LightningModule):
         embedding_size: int = defaults.EMBEDDING_SIZE,
         hidden_size: int = defaults.HIDDEN_SIZE,
         layers: int = defaults.LAYERS,
+        vocab_size: int = 2,  # Dummy value filled in via link.
     ):
         super().__init__()
         self.dropout_layer = nn.Dropout(p=dropout)
-        self.embeddings = nn.Embedding(embedding_size, embedding_size)
+        self.embeddings = nn.Embedding(vocab_size, embedding_size)
+        # Randomly initializes embeddings.
         nn.init.constant_(self.embeddings.weight[special.PAD_IDX], 0.0)
         self.lstm = nn.LSTM(
             embedding_size,
@@ -47,20 +53,18 @@ class Encoder(lightning.LightningModule):
 
     def forward(self, source: data.PaddedTensor) -> torch.Tensor:
         embedded = self.dropout_layer(self.embeddings(source.tensor))
-        print("embedded sequence:", embedded.shape)
-        packed, _ = nn.utils.rnn.pack_padded_sequence(
+        lengths = source.lengths()
+        packed = nn.utils.rnn.pack_padded_sequence(
             embedded,
-            source.lengths(),
+            lengths,
             batch_first=True,
-            enforce_sorted=True,
+            enforce_sorted=False,
         )
-        encoded = self.lstm(packed)
-        encoded = nn.utils.rnn.pad_packed_sequence(
+        encoded, _ = self.lstm(packed)
+        padded, _ = nn.utils.rnn.pad_packed_sequence(
             encoded, batch_first=True, padding_value=special.PAD_IDX
         )
-        print("padded encoded sequence:", encoded.shape)
-        # FIXME
-        return encoded[MASK_ME]
+        return padded
 
 
 class Tagger(lightning.LightningModule):
@@ -70,25 +74,18 @@ class Tagger(lightning.LightningModule):
     individual characters.
 
     Args:
-        vocab_size: number of tags.
         hidden_size: encoder hidden layer size.
+        vocab_size: number of tags.
     """
 
     def __init__(
         self,
         hidden_size: int = defaults.HIDDEN_SIZE,
-        *,
-        # Dummy value; it will be set by the dataset object.
-        vocab_size: int = 2,
+        vocab_size: int = 2,  # Dummy value filled in via link.
     ):
         super().__init__()
-        self.tagger = nn.Linear(hidden_size, vocab_size)
+        # 2x because of bidirectionality
+        self.tagger = nn.Linear(2 * hidden_size, vocab_size)
 
     def forward(self, encoded: torch.Tensor) -> torch.Tensor:
-        logits = self.tagger(encoded)
-        print("tagger logits:", logits.shape)
-        # Masks out values that are unreachable.
-        # FIXME
-        return torch.where(
-            MASK_ME, logits, torch.full_like(logits, defaults.NEG_EPSILON)
-        )
+        return self.tagger(encoded).transpose(1, 2)

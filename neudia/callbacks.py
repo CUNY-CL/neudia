@@ -5,8 +5,9 @@ from typing import TextIO
 import lightning
 from lightning.pytorch import callbacks, trainer
 import torch
+from yoyodyne import util
 
-from . import data, models, util
+from . import data, models
 
 
 class PredictionWriter(callbacks.BasePredictionWriter):
@@ -46,20 +47,18 @@ class PredictionWriter(callbacks.BasePredictionWriter):
     def write_on_batch_end(
         self,
         trainer: trainer.Trainer,
-        model: models.BaseModel,
-        predictions: torch.Tensor,
+        model: models.Neudia,
+        logits: torch.Tensor,
         batch_indices: list[int] | None,
         batch: data.Batch,
         batch_idx: int,
         dataloader_idx: int,
     ) -> None:
         mapper = data.Mapper(trainer.datamodule.index)
-        for prediction in predictions:
-            # FIXME surely a lot to do here.
-            print(
-                "".join(mapper.decode_tags(prediction)),
-                file=self.sink,
-            )
+        for source, tags in zip(
+            batch.source.tensor, torch.argmax(logits, dim=1)
+        ):
+            print("".join(mapper.decode_tagged(source, tags)), file=self.sink)
         self.sink.flush()
 
     def on_predict_end(

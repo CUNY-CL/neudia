@@ -94,4 +94,4 @@ FIXME
 
 ## References
 
-Gershuni, E. and Pinter, Y. 2022. Restoring Hebrew diacritics without a dictionary. In _Findings of the Association for Computational Linguistics: NAACL 2022_, pages 1010-1018.
+Gershuni, E. and Pinter, Y. 2022. [Restoring Hebrew diacritics without a dictionary](https://aclanthology.org/2022.findings-naacl.75/). In _Findings of the Association for Computational Linguistics: NAACL 2022_, pages 1010-1018.

@@ -5,8 +5,7 @@ import logging
 from lightning.pytorch import callbacks as pytorch_callbacks, cli
 from yoyodyne import trainers
 
-# from . import callbacks, data, models
-from . import data, models
+from . import callbacks, data, models
 
 
 def neudia_python_interface(args: cli.ArgsType = None):
@@ -33,18 +32,26 @@ class NeudiaCLI(cli.LightningCLI):
             "checkpoint",
             required=False,
         )
-        # FIXME debug this.
-        # parser.add_lightning_class_args(
-        #    callbacks.PredictionWriter,
-        #    "prediction",
-        #    required=False,
-        # )
-        # FIXME is this used?
-        # parser.link_arguments(
-        #    "data.vocab_size",
-        #    "model.init_args.vocab_size",
-        #    apply_on="instantiate",
-        # )
+        parser.add_lightning_class_args(
+            callbacks.PredictionWriter,
+            "prediction",
+            required=False,
+        )
+        parser.link_arguments(
+            "data.source_vocab_size",
+            "model.source_vocab_size",
+            apply_on="instantiate",
+        )
+        parser.link_arguments(
+            "data.tag_vocab_size",
+            "model.tag_vocab_size",
+            apply_on="instantiate",
+        )
+        parser.link_arguments(
+            "data.encoder_keep",
+            "model.encoder_keep",
+            apply_on="instantiate",
+        )
         parser.link_arguments(
             "data.model_dir",
             "trainer.logger.init_args.save_dir",

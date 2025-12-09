@@ -29,7 +29,7 @@ class Vocabulary:
         return self._symbol2index.get(lookup, special.UNK_IDX)
 
     def __iter__(self) -> Iterable[str]:
-        return self._symbol2index.keys()
+        return iter(self._symbol2index)
 
     def __len__(self) -> int:
         return len(self._index2symbol)
@@ -44,7 +44,8 @@ class Index:
 
     source_vocabulary: Vocabulary
     tag_vocabulary: Vocabulary
-    _source2tags: dict[str, list[int]]
+    # Keeps track of which source symbols we need the encouder output from.
+    encoder_keep: frozenset[int]
 
     def __init__(
         self,
@@ -53,7 +54,6 @@ class Index:
     ):
         self.source_vocabulary = Vocabulary(source_vocabulary)
         tag_vocabulary = set()
-        self._source2tags = {}
         for source, tags in source2tags.items():
             if len(tags) > 1:
                 tag_vocabulary.update(tags)
@@ -65,16 +65,14 @@ class Index:
                         f"non-identity mapping: {source} -> {tag}"
                     )
         self.tag_vocabulary = Vocabulary(tag_vocabulary)
-        for source, tags in source2tags.items():
-            self._source2tags[self.source_vocabulary(source)] = sorted(
-                self.tag_vocabulary(tag) for tag in tags
-            )
+        self.encoder_keep = frozenset(
+            self.source_vocabulary(source)
+            for source, tags in source2tags.items()
+            if len(tags) > 1
+        )
 
     def __len__(self) -> int:
         return len(self._index2symbol)
-
-    def get_tags(self, index: int) -> list[int] | None:
-        return self._source2tags.get(index)
 
     # Serialization.
 
