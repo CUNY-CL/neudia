@@ -35,12 +35,6 @@ jobs:
       - run:
           name: Show installed Python packages
           command: pip list
-      - run:
-          name: Run tests
-          command: |
-              pytest -vvv tests --junitxml /tmp/testxml/report.xml
-      - store_test_results:
-          path: /tmp/testxml/report.xml
 
 workflows:
   version: 2

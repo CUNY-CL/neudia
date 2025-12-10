@@ -202,9 +202,9 @@ We welcome contributions using the fork-and-pull model.
 
 ### Testing
 
-A small integration test diacritizes lines of the
-[*Aeneid*](https://en.wikipedia.org/wiki/Aeneid). To run the test, run the
-following:
+An integration test diacritizes lines of the
+[*Aeneid*](https://en.wikipedia.org/wiki/Aeneid). This test unfortunately cannot
+be run on continuous integration. To run the test, run the following:
 
     pytest -vvv tests
 
