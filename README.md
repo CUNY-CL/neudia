@@ -1,5 +1,7 @@
 # Neudia ✒️
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/CUNY-CL/neudia/tree/master.svg?style=shield&circle-token=CCIPRJ_WpmicDuct9B3ToyWZLjVcX_f7e2378d72fae79fa4f8e8a002f29d277e2bf9b4)](https://dl.circleci.com/status-badge/redirect/gh/CUNY-CL/neudia/tree/master)
+
 Neudia is a neural network-based diacritization system.
 
 ## Philosophy
