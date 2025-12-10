@@ -121,7 +121,7 @@ class DataModule(lightning.LightningDataModule):
         return len(self.index.tag_vocabulary)
 
     @property
-    def encoder_keep(self) -> frozenset[int]:
+    def encoder_keep(self) -> list[int]:
         return self.index.encoder_keep
 
     # Required API.

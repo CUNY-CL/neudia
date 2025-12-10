@@ -1,0 +1,21 @@
+seed_everything: 49
+trainer:
+  gradient_clip_val: 3
+  max_epochs: 100
+  max_time: 00:02:00:00
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: epoch
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: val_loss
+        patience: 10
+        verbose: true
+  logger:
+    - class_path: lightning.pytorch.loggers.CSVLogger
+    - class_path: lightning.pytorch.loggers.WandbLogger
+data:
+  model_dir: models
+  train: /mnt/c/Users/kyleb/Documents/software/neudia/neudia/tests/testdata/train.tsv
+  val: /mnt/c/Users/kyleb/Documents/software/neudia/neudia/tests/testdata/dev.tsv

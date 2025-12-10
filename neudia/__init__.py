@@ -1,10 +1,8 @@
-"""NeuDia: neural diacritization.
-
-This module just silences some uninformative warnings.
-"""
+"""Neudia: neural diacritization."""
 
 import warnings
 
+# Silences some stupid warnings.
 warnings.filterwarnings(
     "ignore",
     ".*adds dropout after all but last recurrent layer.*",

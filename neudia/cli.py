@@ -8,16 +8,6 @@ from yoyodyne import trainers
 from . import callbacks, data, models
 
 
-def neudia_python_interface(args: cli.ArgsType = None):
-    """Interface to use models through Python."""
-    NeudiaCLI(
-        models.Neudia,
-        data.DataModule,
-        trainer_class=trainers.Trainer,
-        args=args,
-    )
-
-
 class NeudiaCLI(cli.LightningCLI):
     """The Neudia CLI interface.
 
@@ -71,4 +61,14 @@ def main() -> None:
         # Prevents prediction logits from accumulating in memory; see the
         # documentation in `trainers.py` for more context.
         trainer_class=trainers.Trainer,
+    )
+
+
+def python_interface(args: cli.ArgsType = None):
+    """Interface to use models through Python."""
+    NeudiaCLI(
+        models.Neudia,
+        data.DataModule,
+        trainer_class=trainers.Trainer,
+        args=args,
     )

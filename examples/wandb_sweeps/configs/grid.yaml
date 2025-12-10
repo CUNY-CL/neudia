@@ -1,0 +1,49 @@
+method: bayes
+metric:
+  name: val_accuracy
+  goal: maximize
+parameters:
+  data.batch_size:
+    distribution: q_uniform
+    q: 16
+    min: 16
+    max: 512
+  model.dropout:
+    distribution: uniform
+    min: 0
+    max: 0.5
+  model.embedding_size:
+    distribution: q_uniform
+    q: 16
+    min: 16
+    max: 512
+  model.hidden_size:
+    distribution: q_uniform
+    q: 32
+    min: 32
+    max: 1024
+  model.label_smoothing:
+    distribution: uniform
+    min: 0
+    max: 0.2
+  model.optimizer.class_path:
+    value: yoyodyne.optimizers.Adam
+  model.optimizer.init_args.lr:
+    distribution: log_uniform_values
+    min: 1.0e-06
+    max: 0.001
+  model.optimizer.init_args.beta1:
+    distribution: log_uniform_values
+    min: 0.8
+    max: 0.99
+  model.optimizer.init_args.beta2:
+    distribution: log_uniform_values
+    min: 0.99
+    max: 0.9999
+  model.scheduler.class_path:
+    value: yoyodyne.schedulers.WarmupInverseSquareRoot
+  model.scheduler.init_args.warmup_epochs:
+    distribution: q_uniform
+    q: 1
+    min: 1
+    max: 20

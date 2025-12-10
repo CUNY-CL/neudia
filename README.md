@@ -84,7 +84,7 @@ it matches the specification of the configuration file.
 
 #### Seeding
 
-Setting the `seed_everything:` argument to s ome fixed value ensures a
+Setting the `seed_everything:` argument to some fixed value ensures a
 reproducible experiment (modulo hardware non-determinism).
 
 #### Model architecture
@@ -96,6 +96,8 @@ A specification for a model determines specific properties of:
 -   the dimensionality of the encoder `hidden_size`
 -   `label_smoothing` probability
 -   the number of encoder `layers`
+
+These are all specified under `model:`.
 
 #### Optimization
 
@@ -198,11 +200,35 @@ We welcome contributions using the fork-and-pull model.
 
 ### Testing
 
-FIXME
+A small integration test diacritizes lines of the
+[*Aeneid*](https://en.wikipedia.org/wiki/Aeneid). To run the test, run the
+following:
+
+    pytest -vvv tests
 
 ### Releasing
 
-FIXME
+We welcome contributions using the fork-and-pull model.
+
+### Releasing
+
+1.  Create a new branch. E.g., if you want to call this branch "release":
+    `git checkout -b release`
+2.  Sync your fork's branch to the upstream master branch. E.g., if the upstream
+    remote is called "upstream": `git pull upstream master`
+3.  Increment the version field in [`pyproject.toml`](pyproject.toml).
+4.  Stage your changes: `git add pyproject.toml`.
+5.  Commit your changes: `git commit -m "your commit message here"`
+6.  Push your changes. E.g., if your branch is called "release":
+    `git push origin release`
+7.  Submit a PR for your release and wait for it to be merged into `master`.
+8.  Tag the `master` branch's last commit. The tag should begin with `v`; e.g.,
+    if the new version is 3.1.4, the tag should be `v3.1.4`. This can be done:
+    -   on GitHub itself: click the "Releases" or "Create a new release" link on
+        the right-hand side of the GitHub page) and follow the dialogues.
+    -   from the command-line using `git tag`.
+9.  Build the new release: `python -m build`
+10. Upload the result to PyPI: `twine upload dist/*`
 
 ## References
 

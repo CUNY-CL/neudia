@@ -17,6 +17,10 @@ class Mapper:
 
     index: indexes.Index  # Usually copied from the DataModule.
 
+    def __post_init__(self):
+        # Enables faster membership queries.
+        self.encoder_keep = frozenset(self.index.encoder_keep)
+
     @classmethod
     def read(cls, model_dir: str) -> Mapper:
         """Loads mapper from an index.
@@ -61,7 +65,7 @@ class Mapper:
             source_idx = source.item()
             if source_idx == special.PAD_IDX:
                 return
-            elif source_idx in self.index.encoder_keep:
+            elif source_idx in self.encoder_keep:
                 tag_idx = next(tag_it).item()
                 yield self.index.tag_vocabulary.get_symbol(tag_idx)
             else:

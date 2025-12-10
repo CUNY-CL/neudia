@@ -44,7 +44,7 @@ class Neudia(lightning.LightningModule):
         # Dummy values filled in via link.
         source_vocab_size: int = 2,
         tag_vocab_size: int = 2,
-        encoder_keep: frozenset[int] = None,
+        encoder_keep: list[int] = None,
     ):
         super().__init__()
         self.encoder = modules.Encoder(
@@ -63,7 +63,7 @@ class Neudia(lightning.LightningModule):
         self.accuracy = classification.MulticlassAccuracy(
             tag_vocab_size, average="micro", ignore_index=special.PAD_IDX
         )
-        self.register_buffer("encoder_keep", torch.tensor(list(encoder_keep)))
+        self.register_buffer("encoder_keep", torch.tensor(encoder_keep))
         self.save_hyperparameters()
 
     def configure_optimizers(
