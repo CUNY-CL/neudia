@@ -84,8 +84,15 @@ class Tagger(lightning.LightningModule):
         vocab_size: int = 2,  # Dummy value filled in via link.
     ):
         super().__init__()
-        # 2x because of bidirectionality
+        # 2x because of bidirectionality.
         self.tagger = nn.Linear(2 * hidden_size, vocab_size)
 
     def forward(self, encoded: torch.Tensor) -> torch.Tensor:
+        """Computes logits for the taggers.
+
+        This takes the contextual encodings of the source symbols which
+        require tagging and then computes the logits. This yields logits
+        of shape N x L x C. Loss and accuracy functions expect N x C x L,
+        so we transpose to produce this shape.
+        """
         return self.tagger(encoded).transpose(1, 2)
