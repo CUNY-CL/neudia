@@ -1,6 +1,6 @@
 [project]
 name = "neudia"
-version = "0.0.2"
+version = "0.0.3"
 description = "Neural diacritization"
 license = { text = "Apache 2.0" }
 readme = "README.md"

@@ -45,7 +45,7 @@ class Index:
     source_vocabulary: Vocabulary
     tag_vocabulary: Vocabulary
     # Keeps track of which source symbols we need the encouder output from.
-    encoder_keep: list[int]
+    source2tag: dict[int, list[int]]
 
     def __init__(
         self,
@@ -65,11 +65,13 @@ class Index:
                         f"non-identity mapping: {source} -> {tag}"
                     )
         self.tag_vocabulary = Vocabulary(tag_vocabulary)
-        self.encoder_keep = sorted(
-            self.source_vocabulary(source)
+        self.source2tags = {
+            self.source_vocabulary(source): sorted(
+                self.tag_vocabulary(tag) for tag in tags
+            )
             for source, tags in source2tags.items()
             if len(tags) > 1
-        )
+        }
 
     def __len__(self) -> int:
         return len(self._index2symbol)
