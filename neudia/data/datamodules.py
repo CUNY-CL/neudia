@@ -117,12 +117,12 @@ class DataModule(lightning.LightningDataModule):
         return len(self.index.source_vocabulary)
 
     @property
-    def tag_vocab_size(self) -> int:
+    def tags_vocab_size(self) -> int:
         return len(self.index.tag_vocabulary)
 
     @property
-    def encoder_keep(self) -> list[int]:
-        return self.index.encoder_keep
+    def source2tags(self) -> dict[int, list[int]]:
+        return self.index.source2tags
 
     # Required API.
 

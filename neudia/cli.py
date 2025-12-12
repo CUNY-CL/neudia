@@ -33,13 +33,13 @@ class NeudiaCLI(cli.LightningCLI):
             apply_on="instantiate",
         )
         parser.link_arguments(
-            "data.tag_vocab_size",
-            "model.tag_vocab_size",
+            "data.tags_vocab_size",
+            "model.tags_vocab_size",
             apply_on="instantiate",
         )
         parser.link_arguments(
-            "data.encoder_keep",
-            "model.encoder_keep",
+            "data.source2tags",
+            "model.source2tags",
             apply_on="instantiate",
         )
         parser.link_arguments(

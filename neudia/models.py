@@ -1,4 +1,8 @@
-"""The Neudia model."""
+"""The Neudia model.
+
+In the documentation below, N is the batch size, C is the number of tags, and
+L is the maximum length (in tags) of a sentence in the batch.
+"""
 
 import lightning
 from lightning.pytorch import cli
@@ -28,6 +32,8 @@ class Neudia(lightning.LightningModule):
     loss_func: nn.CrossEntropyLoss
     optimizer: optim.Optimizer
     scheduler: optim.lr_scheduler.LRScheduler
+    encoder_keep: torch.Tensor
+    tags_mask: torch.Tensor
     # Used for validation in `fit` and testing in `test`.
     accuracy: classification.MulticlassAccuracy | None
 
@@ -43,8 +49,8 @@ class Neudia(lightning.LightningModule):
         scheduler: cli.LRSchedulerCallable = defaults.SCHEDULER,
         # Dummy values filled in via link.
         source_vocab_size: int = 2,
-        tag_vocab_size: int = 2,
-        encoder_keep: list[int] = None,
+        tags_vocab_size: int = 2,
+        source2tags: dict[int, list[int]] = None,
     ):
         super().__init__()
         self.encoder = modules.Encoder(
@@ -54,16 +60,25 @@ class Neudia(lightning.LightningModule):
             layers,
             source_vocab_size,
         )
-        self.tagger = modules.Tagger(hidden_size, tag_vocab_size)
+        self.tagger = modules.Tagger(hidden_size, tags_vocab_size)
         self.loss_func = nn.CrossEntropyLoss(
             ignore_index=special.PAD_IDX, label_smoothing=label_smoothing
         )
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.accuracy = classification.MulticlassAccuracy(
-            tag_vocab_size, average="micro", ignore_index=special.PAD_IDX
+            tags_vocab_size, average="micro", ignore_index=special.PAD_IDX
         )
-        self.register_buffer("encoder_keep", torch.tensor(encoder_keep))
+        # Precomputing constraints.
+        tags_mask = torch.zeros(
+            source_vocab_size, tags_vocab_size, dtype=torch.bool
+        )
+        encoder_keep = torch.zeros(source_vocab_size, dtype=torch.bool)
+        for idx, allowed_tags in source2tags.items():
+            tags_mask[idx, allowed_tags] = True
+            encoder_keep[idx] = True
+        self.register_buffer("tags_mask", tags_mask)
+        self.register_buffer("encoder_keep", encoder_keep)
         self.save_hyperparameters()
 
     def configure_optimizers(
@@ -77,25 +92,33 @@ class Neudia(lightning.LightningModule):
         encoded = self.encoder(batch.source)
         # Removes the second dimension of the encoder output when the
         # corresponding source symbol, the one being encoded, doesn't have any
-        # associated tags. Supposedly this uses a hash set internally so this
-        # should be efficient.
+        # associated tags. We also build a packed source tensor for masking
+        # the tagger outputs later.
+        keep_mask = self.encoder_keep[batch.source.tensor]
+        encoded_filtered = []
+        source_filtered = []
+        for encoded_row, source_row, mask_row in zip(
+            encoded, batch.source.tensor, keep_mask
+        ):
+            encoded_filtered.append(encoded_row[mask_row])
+            source_filtered.append(source_row[mask_row])
         encoded = nn.utils.rnn.pad_sequence(
-            [
-                encoded_sequence[
-                    torch.isin(source_sequence, self.encoder_keep)
-                ]
-                for source_sequence, encoded_sequence in zip(
-                    batch.source.tensor, encoded
-                )
-            ],
+            encoded_filtered,
             batch_first=True,
             padding_value=special.PAD_IDX,
         )
-        # TODO: maybe we should be masking out the logits of tags not
-        # compatible with the source symbol, but that's a lot of book-keeping
-        # and I'm going to hope the model simply self-organizes to avoid this.
-        # kind of error.
-        return self.tagger(encoded)
+        logits = self.tagger(encoded)
+        # Masks out the tags that aren't compatible with the source sequence.
+        source = nn.utils.rnn.pad_sequence(
+            source_filtered,
+            batch_first=True,
+            padding_value=special.PAD_IDX,
+        )
+        valid_tags = self.tags_mask[source]
+        logits.masked_fill_(~valid_tags, defaults.NEG_EPSILON)
+        # The logits are of shape N x L x C, but loss and accuracy functions
+        # expect N x C x L, so we transpose to produce this shape.
+        return logits.transpose(1, 2)
 
     # See the following for how these are called by the different subcommands.
     # https://lightning.ai/docs/pytorch/latest/common/lightning_module.html#hooks
