@@ -1,8 +1,4 @@
-"""Neudia modules.
-
-In the documentation below, N is the batch size, C is the number of tags, and
-L is the maximum length (in tags) of a sentence in the batch.
-"""
+"""Neudia modules."""
 
 import lightning
 import torch
@@ -88,11 +84,5 @@ class Tagger(lightning.LightningModule):
         self.tagger = nn.Linear(2 * hidden_size, vocab_size)
 
     def forward(self, encoded: torch.Tensor) -> torch.Tensor:
-        """Computes logits for the taggers.
-
-        This takes the contextual encodings of the source symbols which
-        require tagging and then computes the logits. This yields logits
-        of shape N x L x C. Loss and accuracy functions expect N x C x L,
-        so we transpose to produce this shape.
-        """
-        return self.tagger(encoded).transpose(1, 2)
+        # We'll transpose this in the model.
+        return self.tagger(encoded)

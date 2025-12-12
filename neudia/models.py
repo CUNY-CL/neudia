@@ -114,9 +114,11 @@ class Neudia(lightning.LightningModule):
             batch_first=True,
             padding_value=special.PAD_IDX,
         )
-        # We transpose from N x L x C to N x C x L to match the logits.
-        valid_tags = self.tags_mask[source].transpose(1, 2)
-        return logits.masked_fill(~valid_tags, defaults.NEG_EPSILON)
+        valid_tags = self.tags_mask[source]
+        logits.masked_fill_(~valid_tags, defaults.NEG_EPSILON)
+        # The logits are of shape N x L x C, but loss and accuracy functions
+        # expect N x C x L, so we transpose to produce this shape.
+        return logits.transpose(1, 2)
 
     # See the following for how these are called by the different subcommands.
     # https://lightning.ai/docs/pytorch/latest/common/lightning_module.html#hooks
