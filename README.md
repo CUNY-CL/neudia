@@ -38,13 +38,17 @@ To install Neudia and its dependencies, run the following command;
 
 ## File formats
 
-Other than YAML configuration files, Yoyodyne operates on basic tab-separated
-values (TSV) data files.
+### YAML configuration files
 
-### Data format
+Neudia uses YAML configuration files; see the [example configuration
+files](configs) for examples, and see the [Yoyodyne
+documentation](https://github.com/CUNY-CL/yoyodyne?tab=readme-ov-file#variable-interpolation)
+for information on variable interpolation.
 
-The default data format is a two-column TSV file in which the first column is
-the source string and the second the target string.
+### TSV data files
+
+Neudia operates on basic tab-separated values (TSV) data files in which the
+first column is the source string and the second the target string.
 
     source   target
 

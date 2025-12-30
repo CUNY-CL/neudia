@@ -1,6 +1,6 @@
 [project]
 name = "neudia"
-version = "0.0.3"
+version = "0.0.4"
 description = "Neural diacritization"
 license = { text = "Apache 2.0" }
 readme = "README.md"
@@ -30,9 +30,10 @@ dependencies = [
     "PyYAML>=6.0.2,<7.0.0",
     "jsonargparse[signatures]>=4.40.0,<5.0.0",
     "lightning==2.6.0",
+    "omegaconf==2.3.0",
     "torch==2.9.1",
     "torchmetrics==1.8.2",
-    "yoyodyne==0.4.5",
+    "yoyodyne==0.4.9",
 ]
 [build-system]
 requires = ["setuptools >= 72.1.0", "wheel"]
