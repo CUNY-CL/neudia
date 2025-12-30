@@ -58,6 +58,7 @@ def main() -> None:
     NeudiaCLI(
         models.Neudia,
         data.DataModule,
+        parser_kwargs={"parser_mode": "omegaconf"},
         # Prevents prediction logits from accumulating in memory; see the
         # documentation in `trainers.py` for more context.
         trainer_class=trainers.Trainer,
@@ -69,6 +70,7 @@ def python_interface(args: cli.ArgsType = None):
     NeudiaCLI(
         models.Neudia,
         data.DataModule,
+        parser_kwargs={"parser_mode": "omegaconf"},
         trainer_class=trainers.Trainer,
         args=args,
     )
