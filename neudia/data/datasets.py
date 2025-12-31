@@ -1,12 +1,16 @@
 """Datasets."""
 
+import abc
 import dataclasses
+import mmap
+from typing import BinaryIO, Iterator
 
 import torch
 from torch import nn
 from torch.utils import data
 
 from . import mappers, tsv
+from .. import defaults
 
 
 class Item(nn.Module):
@@ -31,24 +35,24 @@ class Item(nn.Module):
 
 
 @dataclasses.dataclass
-class Dataset(data.Dataset):
-    """Mappable data set.
+class AbstractDataset(abc.ABC):
+    """Abstract class for datasets.
 
-    This class loads the entire file into memory and is therefore only suitable
-    for in-core data sets.
+    Args:
+        path: path to input TSV file.
+        mapper: mapper for encoding.
+        parser: TSV parser object.
     """
 
-    samples: list[tsv.SampleType]
+    path: str
     mapper: mappers.Mapper
-    has_tags: bool
+    parser: tsv.TsvParser
 
-    # Required API.
+    @property
+    def has_tags(self) -> bool:
+        return self.parser.has_target
 
-    def __len__(self) -> int:
-        return len(self.samples)
-
-    def __getitem__(self, idx: int) -> Item:
-        sample = self.samples[idx]
+    def sample_to_item(self, sample: tsv.SampleType) -> Item:
         if self.has_tags:
             source, target = sample
             return Item(
@@ -58,3 +62,61 @@ class Dataset(data.Dataset):
         else:
             source = sample
             return Item(self.mapper.encode_source(source))
+
+
+@dataclasses.dataclass
+class IterableDataset(AbstractDataset, data.IterableDataset):
+    """Iterable (non-random access) data set."""
+
+    def __iter__(self) -> Iterator[Item]:
+        for sample in self.parser.samples(self.path):
+            yield self.sample_to_item(sample)
+
+
+@dataclasses.dataclass
+class MappableDataset(AbstractDataset, data.Dataset):
+    """Mappable (random access) data set.
+
+    This is implemented with a memory map after making a single pass through
+    the file to compute offsets."""
+
+    _offsets: list[int] = dataclasses.field(default_factory=list, init=False)
+    _mmap: mmap.mmap | None = dataclasses.field(default=None, init=False)
+    _fobj: BinaryIO | None = dataclasses.field(default=None, init=False)
+
+    def __post_init__(self):
+        # Computes offsets.
+        offset = 0
+        with open(self.path, "rb") as source:
+            for line in source:
+                self._offsets.append(offset)
+                offset += len(line)
+
+    def _get_mmap(self) -> mmap.mmap:
+        # Makes this safe for use with multiple workers.
+        if self._mmap is None:
+            self._fobj = open(self.path, "rb")
+            self._mmap = mmap.mmap(
+                self._fobj.fileno(), 0, access=mmap.ACCESS_READ
+            )
+        return self._mmap
+
+    def __len__(self) -> int:
+        return len(self._offsets)
+
+    def __getitem__(self, idx: int) -> Item:
+        mmap = self._get_mmap()
+        start = self._offsets[idx]
+        if idx + 1 < len(self._offsets):
+            end = self._offsets[idx + 1]
+        else:
+            end = mmap.size()
+        line = mmap[start:end].decode(defaults.ENCODING).rstrip()
+        sample = self.parser.parse_line(line)
+        return self.sample_to_item(sample)
+
+    def __del__(self) -> None:
+        if self._mmap is not None:
+            self._mmap.close()
+        if self._fobj is not None:
+            self._fobj.close()
