@@ -78,7 +78,8 @@ class MappableDataset(AbstractDataset, data.Dataset):
     """Mappable (random access) data set.
 
     This is implemented with a memory map after making a single pass through
-    the file to compute offsets."""
+    the file to compute offsets.
+    """
 
     _offsets: list[int] = dataclasses.field(default_factory=list, init=False)
     _mmap: mmap.mmap | None = dataclasses.field(default=None, init=False)
