@@ -14,7 +14,7 @@ class Error(Exception):
     pass
 
 
-SampleType = tuple[str] | str
+SampleType = str | tuple[str]
 
 
 @dataclasses.dataclass
