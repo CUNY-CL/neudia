@@ -9,8 +9,8 @@ import torch
 from torch import nn
 from torch.utils import data
 
-from . import mappers, tsv
 from .. import defaults
+from . import mappers, tsv
 
 
 class Item(nn.Module):
@@ -36,7 +36,7 @@ class Item(nn.Module):
 
 @dataclasses.dataclass
 class AbstractDataset(abc.ABC):
-    """Abstract class for datasets.
+    """Base class for datasets.
 
     Args:
         path: path to input TSV file.
