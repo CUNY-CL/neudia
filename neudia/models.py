@@ -4,6 +4,8 @@ In the documentation below, N is the batch size, C is the number of tags, and
 L is the maximum length (in tags) of a sentence in the batch.
 """
 
+import logging
+
 import lightning
 from lightning.pytorch import cli
 import torch
@@ -122,6 +124,13 @@ class Neudia(lightning.LightningModule):
 
     # See the following for how these are called by the different subcommands.
     # https://lightning.ai/docs/pytorch/latest/common/lightning_module.html#hooks
+
+    def on_fit_start(self):
+        # Rather than crashing, we simply warn about lack of deterministic
+        # algorithms.
+        if torch.are_deterministic_algorithms_enabled():
+            logging.info("(Only) warning about non-deterministic algorithms")
+            torch.use_deterministic_algorithms(True, warn_only=True)
 
     def predict_step(self, batch: data.Batch, batch_idx: int) -> torch.Tensor:
         return self(batch)
