@@ -95,15 +95,26 @@ reproducible experiment (modulo hardware non-determinism).
 
 #### Model architecture
 
-A specification for a model determines specific properties of:
+A specification for a model goes under `model:`, and includes:
 
--   `dropout` probability
 -   the dimensionality of the embeddings (`embedding_size`)
--   the dimensionality of the encoder `hidden_size`
 -   `label_smoothing` probability
--   the number of encoder `layers`
+-   the `class_path` of the encoder
 
-These are all specified under `model:`.
+There are three types of encoders supported:
+
+-   GRU (`yoyodyne.models.modules.GRUEncoder`)
+-   LSTM (`yoyodyne.models.modules.LSTMEncoder`)
+-   Transformer (`yoyodyne.models.modules.TransformerEncoder`)
+
+One provides the class path to the encoder, and then under `init_args:`,
+includes:
+
+-   the `dropout` probability (NB: all dropout occurs within the encoder)
+-   the dimensionality of the encoder `hidden_size`
+-   the number of encoder `layers`
+-   (for GRU and LSTM encoders) whether to use a `bidirectional` encoder
+-   (for the transformer encoder) the number of `attention_heads`
 
 #### Optimization
 
