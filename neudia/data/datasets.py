@@ -57,7 +57,7 @@ class AbstractDataset(abc.ABC):
             source, target = sample
             return Item(
                 self.mapper.encode_source(source),
-                self.mapper.encode_tags(target),
+                self.mapper.encode_tags(source, target),
             )
         else:
             source = sample
