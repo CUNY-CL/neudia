@@ -8,24 +8,26 @@ parameters:
     q: 16
     min: 16
     max: 512
-  model.dropout:
-    distribution: uniform
-    min: 0
-    max: 0.5
   model.embedding_size:
-    distribution: q_uniform
-    q: 16
-    min: 16
-    max: 512
-  model.hidden_size:
     distribution: q_uniform
     q: 32
     min: 32
-    max: 1024
+    max: 512
   model.label_smoothing:
     distribution: uniform
     min: 0
     max: 0.2
+  model.encoder.class_path:
+    value: yoyodyne.models.modules.LSTMEncoder
+  model.encoder.init_args.dropout:
+    distribution: uniform
+    min: 0
+    max: 0.5
+  model.encoder.init_args.hidden_size:
+    distribution: q_uniform
+    q: 32
+    min: 32
+    max: 1024
   model.optimizer.class_path:
     value: yoyodyne.optimizers.Adam
   model.optimizer.init_args.lr:

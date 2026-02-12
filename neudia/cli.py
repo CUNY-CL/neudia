@@ -3,9 +3,19 @@
 import logging
 
 from lightning.pytorch import callbacks as pytorch_callbacks, cli
+import omegaconf
 from yoyodyne import trainers
 
 from . import callbacks, data, models
+
+# Register OmegaConf resolvers here.
+#
+# This allows expressions of the form:
+#
+# hidden_size: ${multiply:${model.init_args.embedding_size}, 4}
+#
+# which means that the hidden size is 4x the embedding size.
+omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y)
 
 
 class NeudiaCLI(cli.LightningCLI):
@@ -71,6 +81,7 @@ def python_interface(args: cli.ArgsType = None):
         models.Neudia,
         data.DataModule,
         parser_kwargs={"parser_mode": "omegaconf"},
+        # See above for explanation.
         trainer_class=trainers.Trainer,
         args=args,
     )

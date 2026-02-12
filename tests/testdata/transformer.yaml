@@ -1,0 +1,6 @@
+encoder:
+  class_path: yoyodyne.models.modules.TransformerEncoder
+  init_args:
+    attention_heads: 4
+    dropout: .2
+    layers: 8

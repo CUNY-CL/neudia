@@ -1,0 +1,4 @@
+encoder:
+  class_path: yoyodyne.models.modules.LSTMEncoder
+  init_args:
+    dropout: .2

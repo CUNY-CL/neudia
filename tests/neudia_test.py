@@ -10,6 +10,8 @@ import re
 import tempfile
 import unittest
 
+from parameterized import parameterized
+
 from neudia import cli
 
 
@@ -52,15 +54,26 @@ class NeudiaTest(unittest.TestCase):
     DATA_CONFIG_PATH = os.path.join(TESTDATA_DIR, "data.yaml")
     CHECKPOINT_CONFIG_PATH = os.path.join(TESTDATA_DIR, "checkpoint.yaml")
     TRAINER_CONFIG_PATH = os.path.join(TESTDATA_DIR, "trainer.yaml")
+    ENCODER = [
+        "bigru",
+        "bilstm",
+        # We'll test these though they aren't very good.
+        "transformer",
+        "unigru",
+        "unilstm",
+    ]
     SEED = 49
 
-    def test_model(self):
+    @parameterized.expand(ENCODER)
+    def test_model(self, encoder: str):
         train_path = os.path.join(self.TESTDATA_DIR, "train.tsv")
         self.assertNonEmptyFileExists(train_path)
         dev_path = os.path.join(self.TESTDATA_DIR, "dev.tsv")
         self.assertNonEmptyFileExists(dev_path)
         test_path = os.path.join(self.TESTDATA_DIR, "test.tsv")
         self.assertNonEmptyFileExists(test_path)
+        model_config_path = os.path.join(self.TESTDATA_DIR, f"{encoder}.yaml")
+        self.assertNonEmptyFileExists(model_config_path)
         model_dir = os.path.join(self.tempdir.name, "models")
         cli.python_interface(
             [
@@ -70,6 +83,7 @@ class NeudiaTest(unittest.TestCase):
                 f"--data.train={train_path}",
                 f"--data.val={dev_path}",
                 f"--data.model_dir={model_dir}",
+                f"--model={model_config_path}",
                 f"--seed_everything={self.SEED}",
                 f"--trainer={self.TRAINER_CONFIG_PATH}",
             ]
@@ -78,8 +92,8 @@ class NeudiaTest(unittest.TestCase):
             f"{model_dir}/lightning_logs/version_0/checkpoints/last.ckpt"
         )
         self.assertNonEmptyFileExists(checkpoint_path)
-        # Predicts on test data.
-        predicted_path = os.path.join(self.tempdir.name, "predicted.txt")
+        # Predicts on test data and compares with expected.
+        predicted_path = os.path.join(self.tempdir.name, f"{encoder}.txt")
         cli.python_interface(
             [
                 "predict",
@@ -87,12 +101,15 @@ class NeudiaTest(unittest.TestCase):
                 f"--data={self.DATA_CONFIG_PATH}",
                 f"--data.model_dir={model_dir}",
                 f"--data.predict={test_path}",
+                f"--model={model_config_path}",
                 f"--prediction.path={predicted_path}",
             ]
         )
         self.assertNonEmptyFileExists(predicted_path)
-        evaluation_path = os.path.join(self.tempdir.name, "evaluated.test")
-        # Evaluates on test data and compares with result.
+        expected_path = os.path.join(self.TESTDATA_DIR, f"{encoder}.txt")
+        self.assertFileIdentity(predicted_path, expected_path)
+        # Evaluates on test data and compares with expected.
+        evaluation_path = os.path.join(self.tempdir.name, f"{encoder}.test")
         with open(evaluation_path, "w") as sink:
             with contextlib.redirect_stdout(sink):
                 cli.python_interface(
@@ -102,11 +119,12 @@ class NeudiaTest(unittest.TestCase):
                         f"--data={self.DATA_CONFIG_PATH}",
                         f"--data.test={test_path}",
                         f"--data.model_dir={model_dir}",
+                        f"--model={model_config_path}",
                         "--trainer.enable_progress_bar=false",
                     ]
                 )
         self.assertNonEmptyFileExists(evaluation_path)
-        expected_path = os.path.join(self.TESTDATA_DIR, "expected.test")
+        expected_path = os.path.join(self.TESTDATA_DIR, f"{encoder}.test")
         self.assertFileIdentity(evaluation_path, expected_path)
 
 
