@@ -102,6 +102,7 @@ class MappableDataset(AbstractDataset, data.Dataset):
     def _get_mmap(self) -> mmap.mmap:
         # Makes this safe for use with multiple workers.
         if self._mmap is None:
+            self._fobj = open(self.path, "rb")
             if hasattr(mmap, "MAP_POPULATE"):  # Linux-specific.
                 flags = mmap.MAP_SHARED
                 if not self.sequential:
