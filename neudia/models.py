@@ -28,11 +28,8 @@ class Neudia(lightning.LightningModule):
         label_smoothing: label smoothing coefficient.
     """
 
-    # TODO(kbg): ideally we'd have a type like `BaseEncoder` that's a
-    # bit more specific, but this has to be fixed upstream with Yoyodyne.
-
     embeddings: nn.Embedding
-    encoder: modules.BaseModule
+    encoder: modules.BaseEncoder
     tagger: taggers.Tagger
     loss_func: nn.CrossEntropyLoss
     optimizer: optim.Optimizer
@@ -44,7 +41,7 @@ class Neudia(lightning.LightningModule):
 
     def __init__(
         self,
-        encoder: modules.BaseModule,
+        encoder: modules.BaseEncoder,
         embedding_size: int = defaults.EMBEDDING_SIZE,
         label_smoothing: float = defaults.LABEL_SMOOTHING,
         *,
