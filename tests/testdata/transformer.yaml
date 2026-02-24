@@ -4,3 +4,4 @@ encoder:
     attention_heads: 4
     dropout: .2
     layers: 8
+    max_length: 128

@@ -92,22 +92,6 @@ class NeudiaTest(unittest.TestCase):
             f"{model_dir}/lightning_logs/version_0/checkpoints/last.ckpt"
         )
         self.assertNonEmptyFileExists(checkpoint_path)
-        # Predicts on test data and compares with expected.
-        predicted_path = os.path.join(self.tempdir.name, f"{encoder}.txt")
-        cli.python_interface(
-            [
-                "predict",
-                f"--ckpt_path={checkpoint_path}",
-                f"--data={self.DATA_CONFIG_PATH}",
-                f"--data.model_dir={model_dir}",
-                f"--data.predict={test_path}",
-                f"--model={model_config_path}",
-                f"--prediction.path={predicted_path}",
-            ]
-        )
-        self.assertNonEmptyFileExists(predicted_path)
-        expected_path = os.path.join(self.TESTDATA_DIR, f"{encoder}.txt")
-        self.assertFileIdentity(predicted_path, expected_path)
         # Evaluates on test data and compares with expected.
         evaluation_path = os.path.join(self.tempdir.name, f"{encoder}.test")
         with open(evaluation_path, "w") as sink:
@@ -124,8 +108,28 @@ class NeudiaTest(unittest.TestCase):
                     ]
                 )
         self.assertNonEmptyFileExists(evaluation_path)
-        expected_path = os.path.join(self.TESTDATA_DIR, f"{encoder}.test")
+        expected_path = os.path.join(
+            self.TESTDATA_DIR, f"{encoder}_expected.test"
+        )
         self.assertFileIdentity(evaluation_path, expected_path)
+        # Predicts on test data and compares with expected.
+        predicted_path = os.path.join(self.tempdir.name, f"{encoder}.txt")
+        cli.python_interface(
+            [
+                "predict",
+                f"--ckpt_path={checkpoint_path}",
+                f"--data={self.DATA_CONFIG_PATH}",
+                f"--data.model_dir={model_dir}",
+                f"--data.predict={test_path}",
+                f"--model={model_config_path}",
+                f"--prediction.path={predicted_path}",
+            ]
+        )
+        self.assertNonEmptyFileExists(predicted_path)
+        expected_path = os.path.join(
+            self.TESTDATA_DIR, f"{encoder}_expected.txt"
+        )
+        self.assertFileIdentity(predicted_path, expected_path)
 
 
 if __name__ == "__main__":
