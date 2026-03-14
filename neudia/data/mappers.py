@@ -36,14 +36,18 @@ class Mapper:
             [self.index.source_vocabulary(symbol) for symbol in symbols]
         )
 
-    def encode_tags(self, symbols: Iterable[str]) -> torch.Tensor:
-        tags = []
-        for symbol in symbols:
-            idx = self.index.tag_vocabulary(symbol)
-            # Skips over identity tags.
-            if idx != special.UNK_IDX:
-                tags.append(idx)
-        return torch.tensor(tags)
+    def encode_tags(
+        self,
+        sources: Iterable[str],
+        tags: Iterable[str],
+    ) -> torch.Tensor:
+        encoded_tags = []
+        for tag, source in zip(tags, sources):
+            source_idx = self.index.source_vocabulary(source)
+            # Checks if source is ambiguous.
+            if source_idx in self.index.source2tags:
+                encoded_tags.append(self.index.tag_vocabulary(tag))
+        return torch.tensor(encoded_tags)
 
     # Decoding.
 

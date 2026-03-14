@@ -24,7 +24,6 @@ class Error(Exception):
 
 # Constants
 ENCODING = "utf-8"
-NUL = "\x00"  # Null character used as separator for chunk alignment
 
 
 def _flatten(chunk: list[str], compatibility: bool = False) -> str:
@@ -230,12 +229,12 @@ def main(args: argparse.Namespace) -> None:
                 plene_line.rstrip(), args.compatibility
             )
             defec = (
-                NUL.join(defec_chunks)
+                "\0".join(defec_chunks)
                 if args.insert_nul
                 else "".join(defec_chunks)
             )
             plene = (
-                NUL.join(plene_chunks)
+                "\0".join(plene_chunks)
                 if args.insert_nul
                 else "".join(plene_chunks)
             )
@@ -263,6 +262,6 @@ if __name__ == "__main__":
         "--insert-nul",
         default=True,
         action=argparse.BooleanOptionalAction,
-        help="inserts NUL bytes between chunks (default: %(default)s)",
+        help="inserts character-0 bytes between chunks (default: %(default)s)",
     )
     main(parser.parse_args())
