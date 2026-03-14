@@ -24,7 +24,7 @@ class Error(Exception):
 
 # Constants
 ENCODING = "utf-8"
-NUL = "\x00"  # Null character used as separator for chunk alignment
+NUL = "\0"  # Null character used as separator for chunk alignment.
 
 
 def _flatten(chunk: list[str], compatibility: bool = False) -> str:

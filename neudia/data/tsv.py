@@ -14,7 +14,8 @@ class Error(Exception):
     pass
 
 
-SampleType = str | tuple[str]
+NUL = "\0"
+SampleType = list[str] | tuple[list[str], list[str]]
 
 
 @dataclasses.dataclass
@@ -55,16 +56,16 @@ class TsvParser:
 
     def _row_to_sample(self, row: list[str]) -> SampleType:
         """Internal helper to convert a row to a SampleType."""
-        source = self._get_string(row, self.source_col)
+        source = self._get_entry(row, self.source_col)
         if self.has_target:
-            target = self._get_string(row, self.target_col)
+            target = self._get_entry(row, self.target_col)
             return source, target
         else:
             return source
 
     @staticmethod
-    def _get_string(row: list[str], col: int) -> str:
-        """Returns a string from a row by index.
+    def _get_entry(row: list[str], col: int) -> list[str]:
+        """Returns a cell by index.
 
         Args:
            row: the split row.
@@ -73,7 +74,7 @@ class TsvParser:
         Returns:
            The string from that cell.
         """
-        return row[col - 1]  # -1 because we're using one-based indexing.
+        return row[col - 1].split(NUL)
 
     @property
     def has_target(self) -> bool:
