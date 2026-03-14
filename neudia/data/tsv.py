@@ -14,7 +14,6 @@ class Error(Exception):
     pass
 
 
-NUL = "\0"
 SampleType = list[str] | tuple[list[str], list[str]]
 
 
@@ -74,7 +73,7 @@ class TsvParser:
         Returns:
            The string from that cell.
         """
-        return row[col - 1].split(NUL)
+        return row[col - 1].split("\0")
 
     @property
     def has_target(self) -> bool:

@@ -1,11 +1,12 @@
 SHELL := /bin/bash
 
 # The predictions and the output of `test`, respectively, for each encoder.
-all: bigru_expected.txt bigru_expected.test \
-	bilstm_expected.txt bilstm_expected.test \
-	transformer_expected.txt transformer_expected.test \
-	unigru_expected.txt unigru_expected.test \
-	unilstm_expected.txt unilstm_expected.test
+all: bigru_expected.txt \
+	bigru_expected.test \
+	bilstm_expected.txt \
+	bilstm_expected.test \
+	rotary_transformer_expected.txt \
+	rotary_transformer_expected.test
 
 %_expected.txt %_expected.test: train.tsv dev.tsv test.tsv %.yaml
 	$(eval TMPDIR := $(shell mktemp -d))

@@ -1,0 +1,32 @@
+checkpoint:
+  filename: model-{epoch:03d}-{val_accuracy:.4f}
+  mode: max
+  monitor: val_accuracy
+  save_last: link
+data:
+  batch_size: 128
+  train: FIXME
+  val: FIXME
+  test: FIXME
+  predict: FIXME
+model:
+  encoder:
+    class_path: yoyodyne.models.modules.LSTMEncoder
+    init_args:
+      dropout: .2
+prediction:
+  path: FIXME
+trainer:
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args:
+        logging_interval: epoch
+    - class_path: lightning.pytorch.callbacks.EarlyStopping
+      init_args:
+        monitor: val_loss
+        patience: 10
+  gradient_clip_val: 3
+  max_epochs: 50
+  logger:
+    - class_path: lightning.pytorch.loggers.CSVLogger
+  precision: bf16-mixed
