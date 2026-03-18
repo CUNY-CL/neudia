@@ -1,6 +1,6 @@
 [project]
 name = "neudia"
-version = "0.1.0"
+version = "0.1.1"
 description = "Neural diacritization"
 license = "Apache-2.0"
 readme = "README.md"
@@ -32,7 +32,8 @@ dependencies = [
     "omegaconf==2.3.0",
     "torch==2.9.1",
     "torchmetrics==1.8.2",
-    "yoyodyne>=0.5.10",
+    "yoyodyne>=0.5.12",
+    "wandb>=0.18.7,<0.19.8",
 ]
 [build-system]
 requires = ["setuptools >= 72.1.0", "wheel"]
