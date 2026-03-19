@@ -11,8 +11,8 @@ Neudia is closely inspired by the Nakdimon diacritization system for Hebrew
 
 ## Design
 
-The Neudia model consists of a randomly initialized bidirectional LSTM which
-feeds into a tagger layer.
+The Neudia model consists of a textual encoder feeding into a single shared
+tagger layer.
 
 Lightning is used to generate the [training, validation, inference, and
 evaluation
