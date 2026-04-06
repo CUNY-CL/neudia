@@ -11,6 +11,7 @@ from lightning.pytorch import cli
 import torch
 from torch import nn, optim
 from torchmetrics import classification
+import wandb
 from yoyodyne.models import modules
 
 from . import data, defaults, taggers, special
