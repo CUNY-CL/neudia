@@ -58,7 +58,9 @@ class PredictionWriter(callbacks.BasePredictionWriter):
         for source, tags in zip(
             batch.source.tensor, torch.argmax(logits, dim=1)
         ):
-            print("".join(mapper.decode_tagged(source, tags)), file=self.sink)
+            print(
+                "\0".join(mapper.decode_tagged(source, tags)), file=self.sink
+            )
         self.sink.flush()
 
     def on_predict_end(

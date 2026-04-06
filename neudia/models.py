@@ -35,7 +35,7 @@ class Neudia(lightning.LightningModule):
     encoder_keep: torch.Tensor
     tags_mask: torch.Tensor
     # Used for validation in `fit` and testing in `test`.
-    accuracy: classification.MulticlassAccuracy | None
+    accuracy: classification.MulticlassAccuracy
 
     def __init__(
         self,
@@ -124,6 +124,11 @@ class Neudia(lightning.LightningModule):
         if torch.are_deterministic_algorithms_enabled():
             logging.info("(Only) warning about non-deterministic algorithms")
             torch.use_deterministic_algorithms(True, warn_only=True)
+        # Informs W&B how I want key metrics summarized.
+        if wandb.run is not None:
+            wandb.define_metric("train_loss", summary="min")
+            wandb.define_metric("val_accuracy", summary="max")
+            wandb.define_metric("val_loss", summary="min")
 
     def predict_step(self, batch: data.Batch, batch_idx: int) -> torch.Tensor:
         return self(batch)
@@ -148,15 +153,16 @@ class Neudia(lightning.LightningModule):
     def validation_step(self, batch: data.Batch, batch_idx: int) -> None:
         logits = self(batch)
         loss = self.loss_func(logits, batch.tags.tensor)
-        self.log(
-            "val_loss",
-            loss,
-            batch_size=len(batch),
-            logger=True,
-            on_epoch=True,
-            on_step=False,
-            prog_bar=True,
-        )
+        if not self.trainer.sanity_checking:
+            self.log(
+                "val_loss",
+                loss,
+                batch_size=len(batch),
+                logger=True,
+                on_epoch=True,
+                on_step=False,
+                prog_bar=True,
+            )
         self.accuracy.update(logits, batch.tags.tensor)
 
     def on_validation_epoch_end(self) -> None:
