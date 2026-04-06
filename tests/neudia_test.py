@@ -57,8 +57,8 @@ class NeudiaTest(unittest.TestCase):
     ENCODER = [
         "bigru",
         "bilstm",
-        # We'll test these though they aren't very good.
-        "transformer",
+        "byt5",
+        "rotary_transformer",
         "unigru",
         "unilstm",
     ]

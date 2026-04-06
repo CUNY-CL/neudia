@@ -11,7 +11,7 @@ from lightning.pytorch import cli
 import torch
 from torch import nn, optim
 from torchmetrics import classification
-from yoyodyne.models import embeddings, modules
+from yoyodyne.models import modules
 
 from . import data, defaults, taggers, special
 
@@ -19,17 +19,15 @@ from . import data, defaults, taggers, special
 class Neudia(lightning.LightningModule):
     """Neudia model.
 
-    This model performs character tagging using a shared LSTM encoder and
-    a shared linear classifier.
+    This model performs character tagging.
 
     Args:
         encoder: Yoyodyne encoder instance.
-        embedding_size: dimensionality of the embedding layer.
         label_smoothing: label smoothing coefficient.
     """
 
-    embeddings: nn.Embedding
     encoder: modules.BaseEncoder
+    index: data.Index | None
     tagger: taggers.Tagger
     loss_func: nn.CrossEntropyLoss
     optimizer: optim.Optimizer
@@ -42,23 +40,20 @@ class Neudia(lightning.LightningModule):
     def __init__(
         self,
         encoder: modules.BaseEncoder,
-        embedding_size: int = defaults.EMBEDDING_SIZE,
         label_smoothing: float = defaults.LABEL_SMOOTHING,
         *,
         optimizer: cli.OptimizerCallable = defaults.OPTIMIZER,
         scheduler: cli.LRSchedulerCallable = defaults.SCHEDULER,
         # Dummy values filled in via link.
+        index: data.Index | None = None,
         source_vocab_size: int = 2,
         tags_vocab_size: int = 2,
         source2tags: dict[int, list[int]] = None,
     ):
         super().__init__()
         self.encoder = encoder
-        # TODO: should we consider using Xavier embeddings if the encoder is a
-        # transformer?
-        self.embeddings = embeddings.normal_embedding(
-            source_vocab_size, embedding_size
-        )
+        if hasattr(self.encoder, "index") and self.encoder.index is None:
+            self.encoder.index = index
         self.tagger = taggers.Tagger(self.encoder.output_size, tags_vocab_size)
         self.loss_func = nn.CrossEntropyLoss(
             ignore_index=special.PAD_IDX, label_smoothing=label_smoothing
@@ -88,7 +83,7 @@ class Neudia(lightning.LightningModule):
         return [optimizer], [scheduler]
 
     def forward(self, batch: data.Batch) -> torch.Tensor:
-        encoded = self.encoder(batch.source, self.embeddings)
+        encoded = self.encoder(batch.source, None)
         # Removes the second dimension of the encoder output when the
         # corresponding source symbol, the one being encoded, doesn't have any
         # associated tags. We also build a packed source tensor for masking
@@ -107,6 +102,7 @@ class Neudia(lightning.LightningModule):
             padding_value=special.PAD_IDX,
         )
         logits = self.tagger(encoded)
+        assert logits.size(2) > 0, "No taggable characters"
         # Masks out the tags that aren't compatible with the source sequence.
         source = nn.utils.rnn.pad_sequence(
             source_filtered,

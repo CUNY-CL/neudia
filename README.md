@@ -11,8 +11,11 @@ Neudia is closely inspired by the Nakdimon diacritization system for Hebrew
 
 ## Design
 
-The Neudia model consists of a randomly initialized bidirectional LSTM which
-feeds into a tagger layer.
+The Neudia model consists of an encoder which feeds into a tagger layer.
+
+Neudia supports RNN (GRU and LSTM) and transformer (vanilla and rotary)
+transformers adapted from [Yoyodyne](https://github.com/CUNY-CL/yoyodyne). It
+also support ByT5, a pre-trained transformer encoder.
 
 Lightning is used to generate the [training, validation, inference, and
 evaluation
@@ -97,24 +100,26 @@ reproducible experiment (modulo hardware non-determinism).
 
 A specification for a model goes under `model:`, and includes:
 
--   the dimensionality of the embeddings (`embedding_size`)
--   `label_smoothing` probability
--   the `class_path` of the encoder
+- the dimensionality of the embeddings (`embedding_size`)
+- `label_smoothing` probability
+- the `class_path` of the encoder
 
-There are three types of encoders supported:
+There are five types of encoders supported:
 
--   GRU (`yoyodyne.models.modules.GRUEncoder`)
--   LSTM (`yoyodyne.models.modules.LSTMEncoder`)
--   Transformer (`yoyodyne.models.modules.TransformerEncoder`)
+- GRU (`neudia.encoders.GRUEncoder`)
+- LSTM (`neudia.encoders.LSTMEncoder`)
+- Transformer (`neudia.encoders.TransformerEncoder`)
+- Rotary transformer (`neudia.encoders.RotaryTransformerEncoder`)
+- ByT5 (`neudia.encoders.ByT5Encoder`)
 
 One provides the class path to the encoder, and then under `init_args:`,
 includes:
 
--   the `dropout` probability (NB: all dropout occurs within the encoder)
--   the dimensionality of the encoder `hidden_size`
--   the number of encoder `layers`
--   (for GRU and LSTM encoders) whether to use a `bidirectional` encoder
--   (for the transformer encoder) the number of `attention_heads`
+- the `dropout` probability (NB: all dropout occurs within the encoder)
+- the number of encoder `layers`
+- (for GRU and LSTM encoders) whether to use a `bidirectional` encoder
+- (for the transformer encoders) the number of `attention_heads`
+- (for ByT5) the number of `pooling_layers`
 
 #### Optimization
 
@@ -203,9 +208,9 @@ The [`examples`](examples) directory contains some relevant examples.
 
 ## Related projects
 
--   Neudia is closely based on
-    [Yoyodyne](https://github.com/CUNY-CL/yoyodyne/tree/master) and reuses much
-    of its core code.
+- Neudia is closely based on
+  [Yoyodyne](https://github.com/CUNY-CL/yoyodyne/tree/master) and reuses much of
+  its core code.
 
 ## License
 
@@ -241,9 +246,9 @@ We welcome contributions using the fork-and-pull model.
 7.  Submit a PR for your release and wait for it to be merged into `master`.
 8.  Tag the `master` branch's last commit. The tag should begin with `v`; e.g.,
     if the new version is 3.1.4, the tag should be `v3.1.4`. This can be done:
-    -   on GitHub itself: click the "Releases" or "Create a new release" link on
-        the right-hand side of the GitHub page) and follow the dialogues.
-    -   from the command-line using `git tag`.
+    - on GitHub itself: click the "Releases" or "Create a new release" link on
+      the right-hand side of the GitHub page) and follow the dialogues.
+    - from the command-line using `git tag`.
 9.  Build the new release: `python -m build`
 10. Upload the result to PyPI: `twine upload dist/*`
 

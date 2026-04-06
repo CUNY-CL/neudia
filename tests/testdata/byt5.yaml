@@ -1,0 +1,5 @@
+encoder:
+  class_path: neudia.encoders.ByT5Encoder
+  init_args:
+    dropout: .2
+    model_name: google/byt5-small

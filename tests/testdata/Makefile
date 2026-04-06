@@ -3,7 +3,8 @@ SHELL := /bin/bash
 # The predictions and the output of `test`, respectively, for each encoder.
 all: bigru_expected.txt bigru_expected.test \
 	bilstm_expected.txt bilstm_expected.test \
-	transformer_expected.txt transformer_expected.test \
+	byt5_expected.txt byt5_expected.test \
+	rotary_transformer_expected.txt rotary_transformer_expected.test \
 	unigru_expected.txt unigru_expected.test \
 	unilstm_expected.txt unilstm_expected.test
 
@@ -26,6 +27,7 @@ all: bigru_expected.txt bigru_expected.test \
 		--data.predict test.tsv \
 		--data.model_dir "$(TMPDIR)" \
 		--model "$*.yaml" \
+		--trainer.enable_progress_bar false \
 		--prediction.path "$*_expected.txt"
 	neudia \
 		test \
