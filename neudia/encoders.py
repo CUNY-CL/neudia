@@ -39,8 +39,7 @@ class EmbeddingMixin(abc.ABC):
     @abc.abstractmethod
     def init_embeddings(
         num_embeddings: int, embedding_size: int
-    ) -> nn.Embedding:
-        ...
+    ) -> nn.Embedding: ...
 
 
 class RNNEmbeddingMixin(EmbeddingMixin):
