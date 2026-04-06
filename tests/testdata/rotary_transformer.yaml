@@ -1,5 +1,5 @@
 encoder:
-  class_path: yoyodyne.models.modules.RotaryTransformerEncoder
+  class_path: neudia.encoders.RotaryTransformerEncoder
   init_args:
     attention_heads: 4
     dropout: .2

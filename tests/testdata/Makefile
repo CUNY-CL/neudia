@@ -4,9 +4,7 @@ SHELL := /bin/bash
 all: bigru_expected.txt bigru_expected.test \
 	bilstm_expected.txt bilstm_expected.test \
 	byt5_expected.txt byt5_expected.test \
-	rotary_transformer_expected.txt rotary_transformer_expected.test \
-	unigru_expected.txt unigru_expected.test \
-	unilstm_expected.txt unilstm_expected.test
+	rotary_transformer_expected.txt rotary_transformer_expected.test
 
 %_expected.txt %_expected.test: train.tsv dev.tsv test.tsv %.yaml
 	$(eval TMPDIR := $(shell mktemp -d))

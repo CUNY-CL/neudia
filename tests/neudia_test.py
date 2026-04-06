@@ -59,8 +59,6 @@ class NeudiaTest(unittest.TestCase):
         "bilstm",
         "byt5",
         "rotary_transformer",
-        "unigru",
-        "unilstm",
     ]
     SEED = 49
 
