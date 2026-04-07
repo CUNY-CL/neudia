@@ -30,7 +30,7 @@ also be specified using POSIX-style command-line flags.
 
 ## Authors
 
-Neudia was created by [Kyle Gorman](https://wellformedness.com) and [opther
+Neudia was created by [Kyle Gorman](https://wellformedness.com) and [other
 contributors](https://github.com/CUNY-CL/neudia/graphs/contributors) like you.
 
 ## Installation
