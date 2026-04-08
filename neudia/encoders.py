@@ -159,7 +159,7 @@ class ByT5Encoder(modules.BaseEncoder):
             # Mean-pools the last n layers' hidden states.
             encoded = torch.stack(
                 output.hidden_states[-self.pooling_layers :]
-            ).mean(dim=0)
+            ).mean()
         # Mean-pools byte positions to obtain character encodings.
         encoded = self._pool_bytes_to_chars(
             encoded, alignments, batch_size, source_length
@@ -212,11 +212,14 @@ class ByT5Encoder(modules.BaseEncoder):
         Returns:
             Number of byte tokens.
         """
-        if char not in self.byte_lengths:
-            self.byte_lengths[char] = max(
+        try:
+            return self.byte_lengths[char]
+        except KeyError:
+            length = max(
                 len(self.tokenizer.encode(char, add_special_tokens=False)), 1
             )
-        return self.byte_lengths[char]
+            self.byte_lengths[char] = length
+            return length
 
     def _tokenize_batch(
         self,
@@ -263,18 +266,18 @@ class ByT5Encoder(modules.BaseEncoder):
         # Pads to max length.
         max_length = max(len(ids) for ids in raw_ids)
         pad_idx = self.tokenizer.pad_token_id
-        padded_ids = [
-            ids + [pad_idx] * (max_length - len(ids)) for ids in raw_ids
-        ]
-        attn_masks = [
-            [1] * (len(ids) - 1) + [0] * (1 + max_length - len(ids))
-            for ids in raw_ids
-        ]
         input_ids = torch.tensor(
-            padded_ids, dtype=torch.long, device=self.device
+            [ids + [pad_idx] * (max_length - len(ids)) for ids in raw_ids],
+            dtype=torch.long,
+            device=self.device,
         )
         attention_mask = torch.tensor(
-            attn_masks, dtype=torch.long, device=self.device
+            [
+                [1] * (len(ids) - 1) + [0] * (1 + max_length - len(ids))
+                for ids in raw_ids
+            ],
+            dtype=torch.long,
+            device=self.device,
         )
         return input_ids, attention_mask, alignments
 
@@ -309,5 +312,5 @@ class ByT5Encoder(modules.BaseEncoder):
                     byte_positions, dtype=torch.long, device=self.device
                 )
                 # Mean over the byte-token hidden states for this character.
-                pooled[i, j] = encoded[i, positions].mean(dim=0)
+                pooled[i, j] = encoded[i, positions].mean()
         return pooled
