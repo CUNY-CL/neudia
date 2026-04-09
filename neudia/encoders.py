@@ -94,6 +94,7 @@ class ByT5Encoder(modules.BaseEncoder):
         model_name: HuggingFace model name.
         index: index.
         pooling_layers: number of layers to use to compute embeddings.
+        source_vocab_size: ignored.
         *args: passed to superclass.
         **kwargs: passed to superclass.
     """
@@ -110,6 +111,7 @@ class ByT5Encoder(modules.BaseEncoder):
         model_name: str = "google/byt5-base",
         index: data.Index | None = None,  # Filled in when instantiating.
         pooling_layers: int = defaults.POOLING_LAYERS,
+        source_vocab_size: int = 0,  # Ignored.
         *args,
         **kwargs,
     ):
@@ -159,7 +161,7 @@ class ByT5Encoder(modules.BaseEncoder):
             # Mean-pools the last n layers' hidden states.
             encoded = torch.stack(
                 output.hidden_states[-self.pooling_layers :]
-            ).mean()
+            ).mean(dim=0)
         # Mean-pools byte positions to obtain character encodings.
         encoded = self._pool_bytes_to_chars(
             encoded, alignments, batch_size, source_length
@@ -312,5 +314,5 @@ class ByT5Encoder(modules.BaseEncoder):
                     byte_positions, dtype=torch.long, device=self.device
                 )
                 # Mean over the byte-token hidden states for this character.
-                pooled[i, j] = encoded[i, positions].mean()
+                pooled[i, j] = encoded[i, positions].mean(dim=0)
         return pooled
