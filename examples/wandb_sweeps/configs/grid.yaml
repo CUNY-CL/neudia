@@ -1,6 +1,6 @@
 method: bayes
 metric:
-  name: val_accuracy
+  name: val_accuracy.max
   goal: maximize
 parameters:
   data.batch_size:
@@ -32,16 +32,8 @@ parameters:
     value: yoyodyne.optimizers.Adam
   model.optimizer.init_args.lr:
     distribution: log_uniform_values
-    min: 1.0e-06
-    max: 0.001
-  model.optimizer.init_args.beta1:
-    distribution: log_uniform_values
-    min: 0.9
-    max: 0.95
-  model.optimizer.init_args.beta2:
-    distribution: log_uniform_values
-    min: 0.99
-    max: 0.9999
+    min: 1.0e-05
+    max: 0.01
   model.scheduler.class_path:
     value: yoyodyne.schedulers.WarmupInverseSquareRoot
   model.scheduler.init_args.warmup_epochs:
