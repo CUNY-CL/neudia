@@ -5,7 +5,8 @@ all: bigru_expected.txt \
 	bigru_expected.test \
 	bilstm_expected.txt \
 	bilstm_expected.test \
-  byt5_expected.txt byt5_expected.test \
+    byt5_expected.txt \
+	byt5_expected.test \
 	rotary_transformer_expected.txt \
 	rotary_transformer_expected.test
 
