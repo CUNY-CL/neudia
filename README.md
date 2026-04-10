@@ -108,7 +108,6 @@ reproducible experiment (modulo hardware non-determinism).
 
 A specification for a model goes under `model:`, and includes:
 
-- the dimensionality of the embeddings (`embedding_size`)
 - `label_smoothing` probability
 - the `class_path` of the encoder
 
@@ -125,8 +124,10 @@ includes:
 
 - the `dropout` probability (NB: all dropout occurs within the encoder)
 - the number of encoder `layers`
-- (for GRU and LSTM encoders) whether to use a `bidirectional` encoder
-- (for the transformer encoders) the number of `attention_heads`
+- (for RNN encoders) whether to use a `bidirectional` encoder
+- (for transformer encoders) the number of `attention_heads`
+- (for RNN and transformer encoders) the dimensionality of the embeddings
+  (`embedding_size`)
 - (for ByT5) the number of `pooling_layers`
 
 #### Optimization
