@@ -11,7 +11,7 @@ data:
   predict: FIXME
 model:
   encoder:
-    class_path: yoyodyne.models.modules.LSTMEncoder
+    class_path: neudia.encoders.LSTMEncoder
     init_args:
       dropout: .2
 prediction:

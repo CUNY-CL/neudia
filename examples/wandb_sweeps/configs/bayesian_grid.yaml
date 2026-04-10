@@ -1,7 +1,7 @@
 method: bayes
 metric:
-  name: val_accuracy.max
-  goal: maximize
+  name: val_loss.min
+  goal: minimize
 parameters:
   data.batch_size:
     distribution: q_uniform
