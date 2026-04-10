@@ -48,7 +48,7 @@ the run's "Overview" on W&B, and then run:
 ## Additional tips
 
 -   If performing a Bayesian search, minimize a dense, continuous function like
-    validation loss rather than maximizing accuracy; see
+    loss rather than maximizing accuracy; see
     [`configs/bayesian_grid.yaml`](configs/bayesian_grid.yaml).
 -   [See here for more
     information](https://github.com/CUNY-CL/yoyodyne/edit/master/examples/wandb_sweeps/README.md#additional-tips).
