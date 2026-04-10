@@ -1,5 +1,9 @@
 # Neudia ✒️
 
+[![PyPI
+version](https://badge.fury.io/py/neudia.svg)](https://pypi.org/project/neudia)
+[![Supported Python
+versions](https://img.shields.io/pypi/pyversions/neudia.svg)](https://pypi.org/project/neudia)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/CUNY-CL/neudia/tree/master.svg?style=shield&circle-token=CCIPRJ_WpmicDuct9B3ToyWZLjVcX_f7e2378d72fae79fa4f8e8a002f29d277e2bf9b4)](https://dl.circleci.com/status-badge/redirect/gh/CUNY-CL/neudia/tree/master)
 
 Neudia is a neural network-based diacritization system.
@@ -62,6 +66,10 @@ One can specify different 1-indexed column indices using arguments to `data:`:
       source_col: 2
       target_col: 1
       ...
+
+To enable proper tokenization, a null byte (`\0`) should be placed between each
+source and each target symbol in the string. See [`examples/strip`](examples/strip)
+for more information.
 
 ## Usage
 
