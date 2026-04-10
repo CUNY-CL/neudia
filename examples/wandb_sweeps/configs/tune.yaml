@@ -19,7 +19,3 @@ data:
   model_dir: models
   train: /mnt/c/Users/kyleb/Documents/software/neudia/neudia/tests/testdata/train.tsv
   val: /mnt/c/Users/kyleb/Documents/software/neudia/neudia/tests/testdata/dev.tsv
-model:
-  encoder:
-    init_args:
-      embedding_size: ${model.embedding_size}

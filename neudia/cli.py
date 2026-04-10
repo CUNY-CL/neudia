@@ -9,12 +9,6 @@ from yoyodyne import trainers
 from . import callbacks, data, models
 
 # Register OmegaConf resolvers here.
-#
-# This allows expressions of the form:
-#
-# hidden_size: ${multiply:${model.init_args.embedding_size}, 4}
-#
-# which means that the hidden size is 4x the embedding size.
 omegaconf.OmegaConf.register_new_resolver("multiply", lambda x, y: x * y)
 
 
@@ -43,6 +37,11 @@ class NeudiaCLI(cli.LightningCLI):
             apply_on="instantiate",
         )
         parser.link_arguments(
+            "data.source_vocab_size",
+            "model.encoder.init_args.source_vocab_size",
+            apply_on="instantiate",
+        )
+        parser.link_arguments(
             "data.tags_vocab_size",
             "model.tags_vocab_size",
             apply_on="instantiate",
@@ -50,6 +49,12 @@ class NeudiaCLI(cli.LightningCLI):
         parser.link_arguments(
             "data.source2tags",
             "model.source2tags",
+            apply_on="instantiate",
+        )
+        # NB: this is no-op if the encoder doesn't have an `index` argument.
+        parser.link_arguments(
+            "data.index",
+            "model.index",
             apply_on="instantiate",
         )
         parser.link_arguments(

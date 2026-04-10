@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import pickle
-from typing import DefaultDict, Iterable
-
-from yoyodyne import util
+from typing import Any, DefaultDict, Dict, Iterable, Tuple
 
 from .. import special
+
+from torch import serialization
+import yaml
+from yoyodyne import util
 
 
 class Error(Exception):
@@ -45,7 +47,7 @@ class Index:
     source_vocabulary: Vocabulary
     tag_vocabulary: Vocabulary
     # Keeps track of which source symbols we need the encouder output from.
-    source2tag: dict[int, list[int]]
+    source2tags: dict[int, list[int]]
 
     def __init__(
         self,
@@ -105,3 +107,51 @@ class Index:
     @staticmethod
     def path(model_dir: str) -> str:
         return f"{model_dir}/index.pkl"
+
+    @staticmethod
+    def _yaml_representer(dumper: yaml.Representer, data: Index):
+        return dumper.represent_mapping(
+            "!Index",
+            {
+                "source_vocabulary": data.source_vocabulary,
+                "tag_vocabulary": data.tag_vocabulary,
+                "source2tags": data.source2tags,
+            },
+        )
+
+    @staticmethod
+    def _yaml_constructor(loader: yaml.Constructor, node: yaml.Node):
+        node_value = loader.construct_mapping(node, deep=True)
+        obj = object.__new__(Index)
+        obj.source_vocabulary = node_value["source_vocabulary"]
+        obj.tag_vocabulary = node_value["tag_vocabulary"]
+        obj.source2tags = node_value["source2tags"]
+        return obj
+
+    def __reduce__(self) -> Tuple[Any, Tuple[Dict[str, Any]]]:
+        return (
+            _reconstruct_index,
+            (
+                {
+                    "source_vocabulary": self.source_vocabulary,
+                    "tag_vocabulary": self.tag_vocabulary,
+                    "source2tags": self.source2tags,
+                },
+            ),
+        )
+
+
+# This whitelists the Index for safe serialization.
+
+
+def _reconstruct_index(state: Dict[str, Any]) -> Index:
+    obj = object.__new__(Index)
+    obj.source_vocabulary = state["source_vocabulary"]
+    obj.tag_vocabulary = state["tag_vocabulary"]
+    obj.source2tags = state["source2tags"]
+    return obj
+
+
+serialization.add_safe_globals([Index, Vocabulary, _reconstruct_index])
+yaml.add_representer(Index, Index._yaml_representer, Dumper=yaml.SafeDumper)
+yaml.add_constructor("!Index", Index._yaml_constructor, Loader=yaml.SafeLoader)

@@ -18,7 +18,7 @@ needed during the sweep, such as trainer arguments or data paths.
     wandb sweep \
         --entity "${ENTITY}" \
         --project "${PROJECT}" \
-        configs/grid.yaml
+        configs/random_grid.yaml
     # Runs the sweep itself using hyperparameters from the the sweep and
     # additional fixed parameters from a Neudia config file.
     yoyodyne_sweep \
@@ -47,5 +47,8 @@ the run's "Overview" on W&B, and then run:
 
 ## Additional tips
 
-[See here for more
-information](https://github.com/CUNY-CL/yoyodyne/edit/master/examples/wandb_sweeps/README.md#additional-tips).
+-   If performing a Bayesian search, minimize a dense, continuous function like
+    loss rather than maximizing accuracy; see
+    [`configs/bayesian_grid.yaml`](configs/bayesian_grid.yaml).
+-   [See here for more
+    information](https://github.com/CUNY-CL/yoyodyne/edit/master/examples/wandb_sweeps/README.md#additional-tips).

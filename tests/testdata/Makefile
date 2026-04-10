@@ -5,6 +5,8 @@ all: bigru_expected.txt \
 	bigru_expected.test \
 	bilstm_expected.txt \
 	bilstm_expected.test \
+    byt5_expected.txt \
+	byt5_expected.test \
 	rotary_transformer_expected.txt \
 	rotary_transformer_expected.test
 
@@ -27,6 +29,7 @@ all: bigru_expected.txt \
 		--data.predict test.tsv \
 		--data.model_dir "$(TMPDIR)" \
 		--model "$*.yaml" \
+		--trainer.enable_progress_bar false \
 		--prediction.path "$*_expected.txt"
 	neudia \
 		test \

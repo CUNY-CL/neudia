@@ -57,6 +57,7 @@ class NeudiaTest(unittest.TestCase):
     ENCODER = [
         "bigru",
         "bilstm",
+        "byt5",
         "rotary_transformer",
     ]
     SEED = 49
