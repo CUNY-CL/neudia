@@ -8,10 +8,6 @@ parameters:
     q: 16
     min: 16
     max: 512
-  model.label_smoothing:
-    distribution: uniform
-    min: 0
-    max: 0.2
   model.encoder.class_path:
     value: neudia.encoders.LSTMEncoder
   model.encoder.init_args.dropout:
@@ -32,7 +28,7 @@ parameters:
     value: yoyodyne.optimizers.Adam
   model.optimizer.init_args.lr:
     distribution: log_uniform_values
-    min: 1.0e-05
+    min: 1.0e-04
     max: 0.01
   model.scheduler.class_path:
     value: yoyodyne.schedulers.WarmupInverseSquareRoot
