@@ -1,7 +1,7 @@
 method: random
 metric:
   name: val_accuracy.max
-  goal: maximizes
+  goal: maximize
 parameters:
   data.batch_size:
     distribution: q_uniform
